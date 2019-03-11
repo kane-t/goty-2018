@@ -1,0 +1,225 @@
+@font-face {
+    font-family: "Whitney";
+    font-style: normal;
+    font-weight: 500;
+    src: url("https://discordapp.com/assets/d153359b5d87601d2b9c708b7ae2db02.woff") format("woff");
+}
+
+.discord_button {
+    background-color: rgb(114, 137, 218);
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    border: 0px;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Whitney,Helvetica Neue,Helvetica,Arial,Lucida Grande,sans-serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 15px;
+    height: 45px;
+    width: 250px;
+    line-height: 45px;
+    text-decoration: none;
+    text-rendering: optimizeLegibility;
+}
+
+.mobile_discord_button {
+    width: 300px;
+    height: 75px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.welcomeMessage {
+    font-size: large;
+}
+
+.errorMessage { color: red; font-weight: bolder; }
+
+.successMessage { color: green; font-weight: bolder; }
+
+.warningMessage { color: goldenrod; font-weight: bolder; }
+
+table { border-collapse: collapse; height: 100%; }
+td.ribbonline { background-color: black; width: 1px; }
+td.ribbonbody { background-color:rgb(174, 0, 1); width: 6px; }
+td.innerpad { background-color: white; width: 56px; }
+td.centrepad { background-color: white; width: 800px; }
+
+div.middlealignparent { display:table; }
+div.middlealigncontainer { display: table-cell; vertical-align: middle; }
+
+/* GOTY Section */
+h1 {
+    font-family:Cambria, Cochin, Georgia, Times, Times New Roman, serif
+}
+input.goty { 
+    border: 0px;
+    border-bottom: 1px dashed #000000; 
+    outline:0; 
+    width: 400px; 
+    font-size: 30px;
+    text-align: center;
+} 
+td.goatvotecell { padding-top: 4px; padding-bottom:74px; }
+
+/* Runner-Up Section */
+input.runnerup { 
+    border: 0px;
+    border-bottom: 1px dashed #000000; 
+    outline:0; 
+    width: 300px; 
+    font-size: 20px;
+    text-align: left;
+} 
+td.runnervotecell { padding-top: 2px; padding-bottom:37px; }
+
+a.submitbutton {
+    -moz-box-shadow:inset 0px 34px 0px -17px #8f3b2e;
+    -webkit-box-shadow:inset 0px 34px 0px -17px #8f3b2e;
+    box-shadow:inset 0px 34px 0px -17px #8f3b2e;
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #80291e), color-stop(1, #8a3226));
+    background:-moz-linear-gradient(top, #80291e 5%, #8a3226 100%);
+    background:-webkit-linear-gradient(top, #80291e 5%, #8a3226 100%);
+    background:-o-linear-gradient(top, #80291e 5%, #8a3226 100%);
+    background:-ms-linear-gradient(top, #80291e 5%, #8a3226 100%);
+    background:linear-gradient(to bottom, #80291e 5%, #8a3226 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#80291e', endColorstr='#8a3226',GradientType=0);
+    background-color:#80291e;
+    -moz-border-radius:2px;
+    -webkit-border-radius:2px;
+    border-radius:2px;
+    border:1px solid #241d13;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:Georgia;
+    font-size:15px;
+    padding:9px 50px;
+    text-decoration:none;
+    text-shadow:-1px 3px 1px #401009;
+}
+a.submitbutton:hover {
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #8a3226), color-stop(1, #80291e));
+    background:-moz-linear-gradient(top, #8a3226 5%, #80291e 100%);
+    background:-webkit-linear-gradient(top, #8a3226 5%, #80291e 100%);
+    background:-o-linear-gradient(top, #8a3226 5%, #80291e 100%);
+    background:-ms-linear-gradient(top, #8a3226 5%, #80291e 100%);
+    background:linear-gradient(to bottom, #8a3226 5%, #80291e 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#8a3226', endColorstr='#80291e',GradientType=0);
+    background-color:#8a3226;
+}
+a.submitbutton:active {
+    position:relative;
+    top:1px;
+}
+
+/* Spinner */
+.spinner {
+    width: 40px;
+    height: 40px;
+    background-color: rgb(174, 0, 1);
+  
+    margin: 100px auto;
+    -webkit-animation: sk-rotateplane 1.2s infinite ease-in-out;
+    animation: sk-rotateplane 1.2s infinite ease-in-out;
+
+    display: none;
+  }
+  
+  @-webkit-keyframes sk-rotateplane {
+    0% { -webkit-transform: perspective(120px) }
+    50% { -webkit-transform: perspective(120px) rotateY(180deg) }
+    100% { -webkit-transform: perspective(120px) rotateY(180deg)  rotateX(180deg) }
+  }
+  
+  @keyframes sk-rotateplane {
+    0% { 
+      transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+      -webkit-transform: perspective(120px) rotateX(0deg) rotateY(0deg) 
+    } 50% { 
+      transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+      -webkit-transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg) 
+    } 100% { 
+      transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+      -webkit-transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+    }
+  }
+
+  #loggedInMessage {
+      visibility:hidden;
+  }
+  
+  .ui-autocomplete {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    float: left;
+    display: none;
+    min-width: 160px;
+    padding: 4px 0;
+    margin: 2px 0 0 0;
+    list-style: none;
+    background-color: #ffffff;
+    border-color: #ccc;
+    border-color: rgba(0, 0, 0, 0.2);
+    border-style: solid;
+    border-width: 1px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -webkit-background-clip: padding-box;
+    -moz-background-clip: padding;
+    background-clip: padding-box;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+}
+  
+.ui-menu-item {
+    display: block;
+    padding: 3px 15px;
+    clear: both;
+    font-weight: normal;
+    line-height: 18px;
+    color: #555555;
+    white-space: nowrap;
+
+}
+    
+.ui-state-focus, .ui-state-active {
+    color: #ffffff;
+    text-decoration: none;
+    background-color: #0088cc;
+    border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    background-image: none;
+}
+  
+.ui-helper-hidden-accessible { display:none; } 
+
+hr#shareDivider {
+    overflow: visible;
+    /* For IE */
+    padding: 0;
+    border: none;
+    border-top: medium double #333;
+    color: #333;
+    text-align: center;
+}
+
+hr#shareDivider:after {
+    content: "§";
+    display: inline-block;
+    position: relative;
+    top: -0.7em;
+    font-size: 1.5em;
+    padding: 0 0.25em;
+    background: white;
+}

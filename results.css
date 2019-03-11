@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css?family=Merriweather');
+
+h1.sectionhead {
+    margin-bottom: 2px;   
+}
+
+td.centrepad { 
+    width: 1000px;
+}
+
+.gotyrowspacer { height: 20px; }
+.gotyrowrule hr {  
+    border: 0; 
+    height: 1px; 
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0)); 
+    margin: 0px;
+}
+
+.gotyrow, .runnerrow { }
+
+.gotyrow td, .runnerrow td {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+
+.gotyrank {
+    font-size: xx-large;
+    font-weight: bolder;
+    text-align: right;
+    padding-right: 10px;
+}
+
+.gotyimg, .runnerimg { 
+    width: 100px;
+}
+
+.gotyimgdiv, .runnerimgdiv { 
+    position: relative;
+    width: 100px;
+    height: 150px;
+}
+
+.gotyimgdiv > img, .runnerimgdiv > img { 
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100px;
+    height: 150px;
+    z-index: 1;
+}
+
+.gotyimgdiv .front, .runnerimgdiv .front { 
+    z-index: 2;
+}
+
+div.gotyribbon {
+    position: absolute;
+    top: 90px;
+    left: 80px;
+    background-image: url('images/Ribbon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    transform: rotate(-24deg);
+    -webkit-transform: rotate(-24deg);
+    width: 80px;
+    height: 80px;
+    z-index: 4;
+}
+
+div.maxgoat {
+    background-image: url('images/goatribbon.png');
+    width: 150px;
+    height: 150px;
+    top: 80px;
+    left: 40px;
+}
+
+td.gotytitle {
+    font-size: xx-large;
+    padding-right: 100px;
+    padding-left: 25px;
+}
+.gotytitle span {
+    padding-right: 10px;
+}
+
+.runnerrank {
+    font-size: x-large;
+    font-weight:400;
+    text-align: center;
+}
+
+.runnerleft .runnerrank {
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.runnertext {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.runnertitle {
+    font-size: x-large;
+}
+.runnerstats {
+}
+
+.gotystats, .runnerstats { font-family: 'Whitney'; font-size: large; }
+.gotytitle, .runnertitle { font-family: 'Merriweather', serif; }
+
+td.gotystats {
+    white-space: nowrap;
+}
+
+div#honourable {
+    max-width: 660px;
+}
+div#honourable div {
+    padding: 4px;
+    font-size: large;
+    box-sizing: border-box;
+    text-align: left;
+    width: 33%;
+}
+
+div#specialsection {
+    max-width: 1000px;
+}
+div#specialsection div {
+    box-sizing: border-box;
+    padding: 4px;
+    width: 25%;
+    text-align: left
+}
+
+table.runnerleft {
+    text-align: right;
+    width:100%;
+}
+table.runnerright {
+    text-align: left;
+    width:100%;
+}
+
+td.runnerpane {
+    width: 50%;
+}
+
+.specialgoty { font-weight: 600; }
+
+#artifactlogocontainer { 
+    width: 100px;
+    height: 150px;
+    position: relative;
+}
+
+#artifactlogoforeground {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+div.spiderpan {
+    position: relative;
+    width: 100px;
+    height: 150px;
+    overflow: hidden;
+}
+
+div.spiderpan > img, div.spiderpan > div.eyecontainer {
+    transform: scale(.694) translate(-104px, -175px);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+div.spiderpan > img.playspiderpan, div.spiderpan > div.playspiderpan {
+    animation: spiderpananim 30s 1;
+    animation-timing-function: ease;
+}
+
+div.spiderpan > div.eyecontainer {
+    z-index: 2;
+    width: 362px;
+    height: 353px;
+}
+
+@keyframes spiderpananim {
+    0% { transform: scale(.694) translate(-104px, -175px); }
+    75% { transform: scale(.694) translate(-104px, -175px); }
+    85% { transform: scale(0.4249, 0.4249) translate(-372px, -239px); }
+    90% { transform: scale(0.4249, 0.4249) translate(-372px, -239px); }
+    100% { transform: scale(.694) translate(-104px, -175px); }
+}
+
+.hiddentitle { opacity: 0.0; }
+
+.titlecontainer {
+    position: relative;
+    height: 4em;
+}
+.lefttitlejoke > span {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
+.righttitlejoke > span {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.gotytitlecontainer {
+    position: relative;
+}
+.gotytitlejoke {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+div.chrisgoat {
+    background-image: url('images/chrisribbon.png');
+    width: 150px;
+    height: 150px;
+    left: 80px;
+    top: 100px;
+}
+#chrisrow { display: none; }
+#chisstitle { display: none; white-space: nowrap; }
+
+.hiddenboxart {
+    display: none;
+}
+
+#specialWrapper { min-height: 500px; }
+#specialToggle {
+    font-style: italic;
+    color: rgb(0, 0, 238);
+    cursor: pointer;
+}
+
+div.eye { 
+    border-radius: 50%/50%; 
+    background: white; 
+    position: absolute;
+    z-index: 2;
+}
+
+div.eye::after {
+    border-radius: 50%/50%;
+    background: black;
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    left: 25%;
+    transform-origin: bottom;
+    content: " ";
+}
+
+div.eye.chisseye {
+    background: darkred;
+}
+
+div.eye.redeye::after {
+    background: darkred;
+}
+
+div.eye.shadeseye {
+    background: rgba(255,255,255,0.5);
+}
+div.eye.shadeseye::after {
+    background: rgba(0,0,0,0.5);
+}
+
+svg.eye { 
+    position: absolute;
+    z-index: 2;
+}
+
+svg.eye > circle.sclera {
+    fill: white;
+}
+
+svg.eye > circle.pupil {
+    fill: black;
+}
+
+svg.eye.chisseye > circle.sclera {
+    fill: darkred;
+}
+
+svg.eye.redeye > circle.pupil {
+    fill: darkred;
+}
+
+svg.eye.shadeseye > circle.sclera {
+    fill: rgba(255,255,255,0.5);
+}
+div.eye.shadeseye > circle.pupil {
+    fill: rgba(0,0,0,0.5);
+}

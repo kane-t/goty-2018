@@ -1,0 +1,1394 @@
+<!doctype html>
+<html class="maxHeight">
+    <head>
+        <title>C&amp;C Discord 2018 Game of the Year Results</title>
+        <meta charset="UTF-8"> 
+
+        <meta property="og:title" content="C&C Discord 2018 Game of the Year">
+        <meta property="og:description" content="The Crate and Crowbar Discord Community's 2018 Game of the Year results.">
+        <meta property="og:image" content="http://kane-t.github.io/goty-2018/images/squareCrateRibbon.png">
+        <meta property="og:url" content="https://kane-t.github.io/goty-2018/">
+        <meta property="og:type" content="website">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> 
+        <script src="isotope.pkgd.min.js"></script>
+        <script src="cells-by-column.js"></script>
+        <script src="googlyeyes.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+        <link rel="stylesheet" type="text/css" href="results.css"/>
+        <style>
+            html, body { margin: 0px; }
+            .maxHeight { height: 100%;}
+        </style>
+
+        <script>
+            function shuffleArray(a) {
+                if(Array.isArray(a) && a.length > 1) { 
+                    for(let i = 0; i < a.length - 1; i++) {                        
+                        var j = Math.floor((a.length - i) * Math.random()) + i;
+                        if(i != j) {
+                            const x = a[j];
+                            a[j] = a[i];
+                            a[i] = x;
+                        }
+                    }
+                }
+                return a;
+            }
+
+            function loadImage(img) { if(!img.src && img.dataset.src) { img.src = img.dataset.src; } }
+
+            function fadingChange(element, newText, speed, onfinished) {
+                speed = speed || 300;
+                if(onfinished) {
+                    element.animate({'opacity': 0}, speed, () => element.text(newText)).animate({'opacity': 1}, speed, onfinished);
+                } else {
+                    element.animate({'opacity': 0}, speed, () => element.text(newText)).animate({'opacity': 1}, speed);
+                }
+            }
+
+            function fadingChangeHtml(element, newText, speed, onfinished) {
+                speed = speed || 300;
+                if(onfinished) {
+                    element.animate({'opacity': 0}, speed, () => element.html(newText)).animate({'opacity': 1}, speed, onfinished);
+                } else {
+                    element.animate({'opacity': 0}, speed, () => element.html(newText)).animate({'opacity': 1}, speed);
+                }
+            }
+
+            // Boxart image rotation.  Click boxart images to force an immediate rotation.
+            // Some boxarts are special, and have their own manual rotation timings.  Joke boxarts only appear for 2 seconds,
+            // while the Spiderpan one appears for 30 seconds (because that's how long the animation plays)
+            function setupRotate(groupidx, groupelem) {
+                const boxarts = $(groupelem).find('.boxart').toArray().map(x => $(x))
+                                .concat($(groupelem).find('.specialboxart').toArray().map(x => $(x)));
+                // Pick an initial box art
+                let shownIdx = 0;
+                boxarts.forEach((elem, idx) => {
+                    // Move the first one to the front, others to the back
+                    if(idx == shownIdx) { 
+                        elem.addClass('front');
+                        elem.show();
+                        // This is unnecessarily safe, but who knows?
+                        loadImage(elem[0]);
+                        // Show them googlies
+                        const googly = getGoogly(elem[0]);
+                        if(googly) { googly.eyes.forEach(x => $(x.element).css('opacity', 1.0)); }
+                    } else {
+                        elem.removeClass('front');
+                        elem.hide();
+                    }
+                });
+                // Shuffle remaining indices
+                let shuffle = shuffleArray(Array.from(boxarts.keys()).slice(1));
+                // Lazy-load the next one
+                loadImage(boxarts[shuffle[0]][0]);
+
+                // Configure animation
+                let animating = false;
+                let timeoutId = undefined;
+                let overrideDuration = undefined;
+                let resetChris = false;
+                const cycleAnim = function() {
+                    // Don't do anything if we're already animating
+                    if(animating) { return; }
+                    animating = true;
+                    // Cancel any active timeouts
+                    if(timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
+                    // Reshuffle indices if we've used 'em all
+                    while(shuffle.length == 0 || shuffle[0] == shownIdx) { shuffle = shuffleArray(Array.from(boxarts.keys())); }
+
+                    // Determine next item idx
+                    let nextIdx = shuffle.shift();
+                    // Ensure the following image is loaded
+                    if(shuffle.length > 0) { loadImage(boxarts[shuffle[0]][0]); }
+                    // Move next boxart to front
+                    boxarts[nextIdx].addClass('front');
+                    boxarts[shownIdx].removeClass('front');
+                    // SPECIAL CASES:
+                    overrideDuration = undefined;
+                    // Play Spiderpan
+                    if(boxarts[nextIdx].hasClass('spiderpan')) {
+                        boxarts[nextIdx].children().removeClass('playspiderpan');
+                        boxarts[nextIdx].children().addClass('playspiderpan');
+                        overrideDuration = 30000;
+                    }
+                    // Joke boxarts only show for a short time
+                    if(boxarts[nextIdx].hasClass('boxartjoke')) {
+                        overrideDuration = 2400;
+                    }
+                    // Chris state check
+                    if(resetChris) {
+                        $('#chisstitle').fadeOut(750, () => $('#christitle').fadeIn(750));
+                        resetChris = false;
+                    } else if(boxarts[nextIdx].attr('title') === `Chiss Mitth'urstenuodo`) {
+                        $('#christitle').fadeOut(750, () => $('#chisstitle').fadeIn(750));
+                        resetChris = true;
+                    }
+                    // Fade googly eyes
+                    const prevGoogly = getGoogly(boxarts[shownIdx][0]);
+                    const nextGoogly = getGoogly(boxarts[nextIdx][0]);
+                    // Fade in the new front element
+                    if(prevGoogly) { prevGoogly.eyes.forEach(x => $(x.element).animate({ opacity: 0.0 }, 1500)); }
+                    if(nextGoogly) { nextGoogly.eyes.forEach(x => $(x.element).animate({ opacity: 1.0 }, 1500)); }
+                    return Promise.all([
+                        boxarts[shownIdx].fadeOut(1500).promise(),
+                        boxarts[nextIdx].fadeIn(1500).promise()
+                    ]).then(() => {
+                        shownIdx = nextIdx;
+                        animating = false;
+
+                        // Start next timeout (special case shorter delay for long galleries)
+                        const delay = boxarts.length < 20 ? (10000 + Math.random() * 25000) : (5000 + Math.random() * 10000);
+                        timeoutId = setTimeout(cycleAnim, overrideDuration || delay);
+                    });
+                }
+
+                // Start cycling when element appears
+                $(groupelem).appear();
+                $(groupelem).one('appear', function() {
+                    if(!timeoutId) {
+                        const delay = boxarts.length < 20 ? (10000 + Math.random() * 25000) : (5000 + Math.random() * 10000);
+                        timeoutId = setTimeout(cycleAnim, delay); 
+                        //$(groupelem).find('img[data-src]').each((imgidx, img) => { img.src = img.dataset.src; });
+                    }
+                });
+                timeoutId = setTimeout(cycleAnim, Math.floor((Math.random() * 25000 + 15000)));
+                // Allow click to cycle manually
+                $(groupelem).on('click', cycleAnim);
+            }
+
+            // Some titles rotate when you hold your mouse over them for 6 seconds.  
+            // Look for elements with a "hiddentitle" class
+            function setupTitleJoke(groupidx, groupelem) {
+                // Wrap group elem and get child nodes
+                groupelem = $(groupelem);
+                const children = groupelem.children().toArray().map(x => $(x));
+                if(children.length == 0) { return; }
+
+                // Set up rotater
+                let currentIdx = 0;
+                let animating = false;
+                let mouseIn = false;
+                let timeoutId = undefined;
+                const rotateTitle = function() {
+                    if(animating) { return; } else { animating = true; }
+
+                    // Get next index
+                    let nextIdx = currentIdx + 1;
+                    if(nextIdx == children.length) { nextIdx = 0; }
+
+                    // Crossfade titles
+                    return Promise.all([
+                        children[currentIdx].animate({'opacity': 0.0}).promise(),
+                        children[nextIdx].animate({'opacity': 1.0}).promise()
+                    ]).then(() => {
+                        currentIdx = nextIdx;
+                        animating = false;
+                        if(mouseIn) { timeoutId = setTimeout(rotateTitle, currentIdx == 0 ? 6000 : 3000); }
+                    });
+                }
+
+                const resetTitle = () => {
+                    groupelem.children().finish();
+                    groupelem.children().css('opacity', 0.0);
+                    children[0].css('opacity', 1.0);
+                    currentIdx = 0;
+                    animating = false;
+                    if(timeoutId) { clearTimeout(timeoutId); timeoutId = undefined;}
+                }
+
+                // Set up event trigger
+                groupelem.mouseenter(function() {
+                    mouseIn = true;
+                    // Reset everything
+                    resetTitle();
+                    timeoutId = setTimeout(rotateTitle, 6000);
+                });
+                groupelem.mouseleave(function() {
+                    mouseIn = false;
+                    resetTitle();
+                });
+            }
+
+            // If you're reading the source, looking for hidden jokes, please don't tell anybody in the server about this.
+            // Just send a question in to the C&C Podcast after January 11th, and tell Chris about it.
+            // To activate: hold mouse over Subnautica's goat ribbon for 7.5 seconds
+            function setupChrisFace() {
+                $maxgoat = $('.maxgoat');
+                $chrisPanel = $('#chrisrow');
+                $chrisDivs = $chrisPanel.find('.chrisdiv');
+                $chrisDivs.hide();
+
+                let appeared = false;
+                let goathold = false;
+                let fading = false;
+                let delayId = undefined;
+                let firstTime = true;
+                const showChris = function() {
+                    if(delayId) { clearTimeout(delayId); delayId = undefined; }
+                    fading = false;
+                    $chrisPanel.show();
+                    $chrisDivs.slideDown(800);
+                    if(!appeared) {
+                        appeared = true;
+                        setTimeout(() => $.force_appear(), 1000);
+                        //setTimeout(() => $chrisPanel.find('div.gotyimgdiv').click(), 4000);
+                    }
+                    if(firstTime) {
+                        firstTime = false;
+                        // Load Chrispics
+                        $chrisPanel.find('img[data-src]').each((picidx, pic) => { pic.src = pic.dataset.src; });
+                    }
+                }
+                const hideChris = function() { 
+                    $chrisDivs.slideUp(800).promise().then(() => $chrisPanel.hide());
+                    if(delayId) { clearTimeout(delayId); delayId = undefined; }
+                    fading = false;
+                    $maxgoat.finish().css('display', 'block').animate({'opacity': 1.0});
+                }
+                const startFade = function() {
+                    delayId = undefined;
+                    if(goathold && !fading) { 
+                        fading = true;
+                        $maxgoat.finish().animate({'opacity': 0.0}, 5000).promise().then(() => {
+                            if(goathold) { 
+                                $maxgoat.css('display', 'none');
+                                showChris();
+                            } else {
+                                $maxgoat.finish().css('opacity', 1.0);
+                            }
+                        });
+                    }
+                }
+                //$maxgoat.click(showChris);
+                $('tr#chrisrow td.gotytitle').click(hideChris);/*
+                $chrisPanel.on('click', (e, param) => { 
+                    if(!$(e.target).hasClass('boxart') && !$(e.target).hasClass('gotyimgdiv')) { hideChris(); }
+                });*/
+
+                $maxgoat.mouseenter(function() {
+                    goathold = true;
+                    if(!delayId) { delayId = setTimeout(startFade, 2500); }
+                });
+
+                $maxgoat.mouseleave(function() {
+                    goathold = false;
+                    if(delayId) { 
+                        clearTimeout(delayId); 
+                        delayId = undefined;
+                    }
+                    if(fading) { 
+                        $maxgoat.finish();
+                        $maxgoat.css('opacity', 1.0);
+                        $maxgoat.css('display', 'block');
+                        fading = false;
+                    }
+                });
+            }
+
+            // Googly eyes on boxart images.  They track the mouse cursor.  Click the 8 in "2018 Game of the Year"
+            function setupGoogly() {
+                // Fill in googly eyes names
+                for(let entries of googlyEyes.entries()) { entries[1].key = entries[0]; entries[1].eyes.forEach(x => x.element = $()); }
+                // Set up boxart googly eyes
+                $('img.boxart').each((boxidx, box) => {
+                    const eyeData = getGoogly(box);
+                    if(eyeData) {
+                        eyeData.eyes.forEach(x => {
+                            x.element = $('<svg class="eye"><circle class="sclera" cx="50%" cy="50%" r="50%"/><circle class="pupil" cx="50%" cy="25%" r="25%"/></svg>');
+                            x.element.css({ left: x.left, top: x.top, width: x.size, height: x.size, opacity: 0, display: 'none' });
+                            if(x.addclass) { x.element.addClass(x.addclass); }
+                            x.element.appendTo(box.parentNode);
+                        });
+                    }
+                });
+
+                // Set up spiderpan (this could be more efficiently rolled into the other logic)
+                {
+                    const sp = $('div.spiderpan > div.eyecontainer');
+                    const eyeData = googlyEyes.get('spiderpan');
+                    if(eyeData) {
+                        eyeData.eyes.forEach(x => {
+                            x.element = $('<svg class="eye"><circle class="sclera" cx="50%" cy="50%" r="50%"/><circle class="pupil" cx="50%" cy="25%" r="25%"/></svg>');
+                            x.element.css({ left: x.left, top: x.top, width: x.size, height: x.size, opacity: 0, display: 'none' });
+                            sp.append(x.element);
+                        });
+                    }
+                }
+
+                // Set up logo googly eyes and click handler
+                const logo = $('#gotylogo');
+                const logoData = getGoogly(logo[0]);
+                logoData.eyes.forEach(x => {
+                    x.element = $('<svg class="eye"><circle class="sclera" cx="50%" cy="50%" r="50%"/><circle class="pupil" cx="50%" cy="25%" r="25%"/></svg>');
+                    x.element.css({ left: x.left, top: x.top, width: x.size, height: x.size, display: 'none' });
+                    logo.parent().append(x.element);
+                });
+                var googlin = false;
+                const toggleGoogly = () => {
+                    if(googlin) {
+                        googlin = false;
+                        $('svg.eye').css('display', 'none');
+                    } else {
+                        googlin = true;
+                        $('svg.eye').css('display', 'block');
+                    }
+                };
+
+                logo.click(eventObj => {
+                    const offsetX = eventObj.offsetX;
+                    const offsetY = eventObj.offsetY;
+                    if(offsetX >= 77 && offsetX <= 97 && offsetY >= 195 && offsetY <= 229) {
+                        toggleGoogly();
+                    }
+                });
+                logoData.eyes.forEach(x => x.element.click(toggleGoogly));
+
+                // Set up maxgoat googly eyes
+                const goatribbon = $('div.gotyribbon.maxgoat');
+                googlyEyes.get('goatribbon.png').eyes.forEach(x => {
+                    x.element = $('<svg class="eye"><circle class="sclera" cx="50%" cy="50%" r="50%"/><circle class="pupil" cx="50%" cy="25%" r="25%"/></svg>');
+                    x.element.css({ left: x.left, top: x.top, width: x.size, height: x.size, display: 'none' });
+                    goatribbon.append(x.element);
+                });
+                // Set up supermaxgoat googly eyes
+                const chrisribbon = $('div.gotyribbon.chrisgoat');
+                googlyEyes.get('chrisribbon.png').eyes.forEach(x => {
+                    x.element = $('<svg class="eye"><circle class="sclera" cx="50%" cy="50%" r="50%"/><circle class="pupil" cx="50%" cy="25%" r="25%"/></svg>');
+                    x.element.css({ left: x.left, top: x.top, width: x.size, height: x.size, display: 'none' });
+                    chrisribbon.append(x.element);
+                });
+
+                $(document).mousemove(function(event) {
+                    $("svg.eye").each((eyeidx, eyelm) => {
+                        let eye = $(eyelm);
+                        if(eye.css('opacity') == 0 || eye.css('display') == 'none') { return; }
+
+                        let x = (eye.offset().left) + (eye.width() / 2);
+                        let y = (eye.offset().top) + (eye.height() / 2);
+                        let rad = Math.atan2(event.pageX - x, event.pageY - y);
+                        let rot = (rad * (180 / Math.PI) * -1) + 180;
+                        if(eye.hasClass('mirroreye')) { rot = 360 - rot; }
+                        eye.css({
+                            '-webkit-transform': 'rotate(' + rot + 'deg)',
+                            '-moz-transform': 'rotate(' + rot + 'deg)',
+                            '-ms-transform': 'rotate(' + rot + 'deg)',
+                            'transform': 'rotate(' + rot + 'deg)'
+                        });
+                    });
+                });
+            }
+
+            // Switch to the full name of almanac of girlswampwar territory on hover.  For Lavender.
+            function setupLavtitle() {
+                const lavdiv = $('#lavtitle');
+
+                const titles = [ 'almanac of girlswampwar territory', 'almanac of girlswampwar territory & the _girls who swim as fertilizer through the warm soil cloaking the roots of the glorious tree of eugenics (giving birth to a black hole in a walmart parking lot at 1am)' ];
+                let title = 0;
+                let timeoutId = undefined;
+
+                const rotateTitle = () => {
+                    timeoutId = undefined;
+                    title = 1 - title;
+                    lavdiv.animate({'opacity': 0}, 300, () => {
+                        lavdiv.text(titles[title]);
+                        lavdiv.animate({'opacity': 1}, 300);
+                        $('#specialsection').isotope('layout');
+                    });
+                };
+
+                // Set up event trigger
+                lavdiv.mouseenter(function() {
+                    if(timeoutId) { clearTimeout(timeoutId); timoutId = undefined; }
+                    timeoutId = setTimeout(rotateTitle, 4000);
+                });
+                lavdiv.mouseleave(function() {
+                    if(timeoutId) { clearTimeout(timeoutId); timoutId = undefined; }                    
+                });
+            }
+
+            function init() {
+                setupGoogly();
+                // Set up boxart rotating
+                $('div.runnerimgdiv').each(setupRotate);
+                $('div.gotyimgdiv').each(setupRotate);
+                // Set up title jokes
+                $('div.lefttitlejoke').each(setupTitleJoke);
+                $('div.righttitlejoke').each(setupTitleJoke);
+                $('div.gotytitlecontainer').each(setupTitleJoke);
+                // Set up Special Considerations shuffling
+                const $special = $('#specialsection');
+                const specialTitles = $special.children('div').length;
+                let specialFiltering = false;
+                $special.isotope({
+                    itemSelector: 'div',
+                    /*layoutMode: 'vertical',*/
+                    cellsByColumn: {
+                        columnWidth: 250,
+                        rowHeight: 18
+                    },
+                    getSortData: {
+                        title: itemElem => itemElem.innerText,
+                        goty: itemElem => $(itemElem).hasClass('specialgoty')
+                    },
+                    sortBy: 'original-order',
+                    sortAscending: true,
+                    filter: function() { return !specialFiltering || $(this).hasClass('specialgoty') || Math.random() >= 0.6; }, 
+                    transitionDuration: '1.2s',
+                    hiddenStyle: { opacity: 0 }, 
+                    visibleStyle: { opacity: 1 }
+                });
+                // Allow toggling filtering
+                $('#specialToggle').click(() => { specialFiltering = !specialFiltering; $special.isotope(); });
+                // Show filtered items on the filter toggle item
+                $special.on('arrangeComplete', (event, filteredItems) => {
+                    let hiddenTitles = specialTitles - filteredItems.length;
+                    if(hiddenTitles == 0) {
+                        $('#specialToggle').html('(show rotating selection)');
+                    } else {
+                        $('#specialToggle').html(`(show <b>${hiddenTitles}</b> hidden titles)`);
+                    }
+                });
+                // Don't start rotating until it's visible to the user
+                $special.appear();
+                $special.one('appear', () => setInterval(() => $special.isotope(), 60000));
+                // Allow manual re-layout
+                $special.click(() => $special.isotope());
+                // Initially lay out the items with filtering disabled, then turn it on, to resolve a minor layout issue
+                setTimeout(() => $('#specialToggle').click(), 1000);
+                // Set up Honourable Mentions
+                $('#honourable').isotope({
+                    itemSelector: 'div',
+                    cellsByColumn: {
+                        columnWidth: 320,
+                        rowHeight: 20
+                    },
+                    sortBy: 'original-order',
+                    sortAscending: true,
+                    transitionDuration: 0
+                });
+                // Set up Chris's Photoshopped Face
+                setupChrisFace();
+                // Setup Lavender's title
+                setupLavtitle();
+            }
+
+            $(document).ready(function() {
+                init();
+                $.force_appear();
+            });
+        </script>
+    </head>
+
+    <body class="maxHeight">
+        <!-- Welcome Screen -->
+        <div id="logindiv" class="maxHeight">
+            <center class="maxHeight">
+            <table>
+                <tr>
+                    <td class="ribbonoutsideline"></td><td class="ribbonbody"></td><td class="ribboninsideline"></td>
+                    <td class="innerpad"></td>
+                    <td class="centrepad" style="height:32px;"></td>
+                    <td class="innerpad"></td>                
+                    <td class="ribboninsideline"></td><td class="ribbonbody"></td><td class="ribbonoutsideline"></td>
+                </tr>
+                <tr>
+                    <td class="ribbonoutsideline"></td><td class="ribbonbody"></td><td class="ribboninsideline"></td>
+                    <td class="innerpad"></td>
+                    <td class="centrepad"><center><div style="display:inline-block; position:relative;"><img id="gotylogo" src="images/gotylogo.png"/></div></center></td>
+                    <td class="innerpad"></td>                
+                    <td class="ribboninsideline"></td><td class="ribbonbody"></td><td class="ribbonoutsideline"></td>
+                </tr>
+                <tr>
+                    <td class="ribbonoutsideline"></td><td class="ribbonbody"></td><td class="ribboninsideline"></td>
+                    <td class="innerpad"></td>
+                    <td class="centrepad" style="height:32px;"></td>
+                    <td class="innerpad"></td>                
+                    <td class="ribboninsideline"></td><td class="ribbonbody"></td><td class="ribbonoutsideline"></td>
+                </tr>
+                <tr>
+                    <td class="ribbonoutsideline"></td><td class="ribbonbody"></td><td class="ribboninsideline"></td>
+                    <td class="innerpad"></td>
+                    <td class="centrepad">
+                        <center>
+                            <center><h1>Runners-Up</h1></center>
+                            <br/>
+                            <table id="runners">
+                                <tr><td class="runnerpane">
+                                    <table class="runnerleft">
+                                        <tr class="runnerrow">
+                                            <td class="runnertext">
+                                                <div class="titlecontainer lefttitlejoke" style="height:3em">
+                                                    <span class="runnertitle">Artifact</span>
+                                                    <span class="runnertitle hiddentitle">Chris Thursten's<br/>Favourite Wizard Cards</span>
+                                                </div>
+                                                <br/>
+                                                <span class="runnerstats">
+                                                    Votes: <b>8</b><br/>
+                                                    <a href="https://playartifact.com/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/6761/artifact" target="_blank">OpenCritic: <b>79</b></a> | 
+                                                    <a href="https://discord.gg/gkakV3s" target="_blank">Discuss</a><br/>
+                                                    <a href="https://store.steampowered.com/app/583950/Artifact/" target="_blank">Steam</a>
+                                                </span>
+                                            </td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <!-- Special animated logo, which hopefully Chris will enjoy -->
+                                                <div id="artifactlogocontainer" class="boxart">
+                                                    <div id="artifactlogobackground">
+                                                        <video id="artifactvideo" autoplay muted playsinline loop preload width="100px" height="150px" poster="images/boxart/artifactbg.png">
+                                                            <source src="images/boxart/artifactbg.mp4" type="video/mp4"/>
+                                                            <source src="images/boxart/artifactbg.webm" type="video/webm"/>
+                                                        </video>
+                                                    </div>
+                                                    <div id="artifactlogoforeground">
+                                                        <img id="artifactlogo" src="images/boxart/artifactlogo.png"/>
+                                                    </div>
+                                                </div>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/artifact.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/artifact2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/artifact3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/artifact5.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnerrank">#10</td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnertext">
+                                                <div class="titlecontainer lefttitlejoke">
+                                                    <span class="runnertitle">Warframe</span>
+                                                    <span class="runnertitle hiddentitle">War<i>fraaaaaaame!</i></span>
+                                                    <span class="runnertitle hiddentitle">Somebody Else's<br/>Sex World</span>
+                                                    <span class="runnertitle hiddentitle">Grind for Boltor</span>
+                                                    <span class="runnertitle hiddentitle">Level 3<br/>Space-Dominatrix</span>
+                                                    <span class="runnertitle hiddentitle">You're Like A<br/>Lithe Hyper-Gimp</span>
+                                                    <span class="runnertitle hiddentitle">Every Fetish<br/>Is Accounted For</span>
+                                                    <span class="runnertitle hiddentitle">Warfrace</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>8</b><br/>
+                                                    <a href="https://www.warframe.com/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/319/warframe" target="_blank">OpenCritic: <b>73</b></a> | 
+                                                    <a href="https://discord.gg/gBevtE8" target="_blank">Discuss</a><br/>
+                                                    Free on
+                                                    <a href="https://store.steampowered.com/app/230410/Warframe/" target="_blank">Steam</a> | 
+                                                    <a href="https://www.warframe.com/signup" target="_blank">Consoles</a>
+                                                </span>
+                                            </td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/warframe.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/warframe2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/warframe3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/warframe4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/warframe5.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnerrank">#8</td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnertext">
+                                                <div class="titlecontainer">
+                                                    <span class="runnertitle">Pillars of Eternity II: Deadfire</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>9</b><br/>
+                                                    <a href="https://eternity.obsidian.net/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/5765/pillars-of-eternity-ii-deadfire" target="_blank">OpenCritic: <b>89</b></a><br/>
+                                                    <a href="https://store.steampowered.com/app/560130/Pillars_of_Eternity_II_Deadfire/" target="_blank">Steam</a> |  
+                                                    <a href="https://www.gog.com/game/pillars_of_eternity_2_game" target="_blank">GoG</a>
+
+                                                </span>
+                                            </td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/deadfire2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadfire3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadfire4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadfire5.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadfire6.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadfire7.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadfire8.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnerrank">#6</td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnertext">
+                                                <div class="titlecontainer">
+                                                    <span class="runnertitle">Warhammer: Vermintide 2</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>10</b><br/>
+                                                    <a href="http://www.vermintide.com/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/5673/warhammer-vermintide-2" target="_blank">OpenCritic: <b>83</b></a><br/>
+                                                    <a href="https://store.steampowered.com/app/552500/Warhammer_Vermintide_2/" target="_blank">Steam</a> | 
+                                                    <a href="https://store.playstation.com/en-gb/product/EP4122-CUSA13645_00-VERMINTIDE2000EU" target="_blank">PS4</a> | 
+                                                    <a href="https://www.microsoft.com/en-us/p/warhammer-vermintide-2-premium-edition/bwl9sbdxgkwq" target="_blank">Xbone</a>
+                                                </span>
+                                            </td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/vermintide.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/vermintide2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/vermintide3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/vermintide4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/vermintide5.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/vermintide6.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnerrank">#4</td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnertext">
+                                                <div class="titlecontainer lefttitlejoke">
+                                                    <span class="runnertitle">Heat Signature</span>
+                                                    <span class="runnertitle hiddentitle">Tom Francis Simulator 2017</span>
+                                                    <span class="runnertitle hiddentitle">Go Inside<br/>The Spaceships</span>
+                                                    <span class="runnertitle hiddentitle">High-Temperature<br/>John Hancock</span>
+                                                    <span class="runnertitle hiddentitle">Congrats Again, Tom!</span>
+                                                    <span class="runnertitle hiddentitle">Two-Time C3GOTY Champion</span>
+                                                    <span class="runnertitle hiddentitle">That's Not Suspicious<br/>At All!</span>
+                                                    <span class="runnertitle hiddentitle">Collusionpoint</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>12</b><br/>
+                                                    <a href="http://spaceships.cool/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/4895/heat-signature" target="_blank">OpenCritic: <b>78</b></a> | 
+                                                    <a href="https://discord.gg/RC8WbJ4" target="_blank">Discuss</a><br/>
+                                                    <a href="https://store.steampowered.com/app/268130/Heat_Signature/" target="_blank">Steam</a> | 
+                                                    <a href="https://www.humblebundle.com/store/heat-signature" target="_blank">Humble</a>
+                                                </span>
+                                            </td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/heatsig.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/heatsig2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/heatsig3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/heatsig4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/heatsig5.png"/>
+                                                <img class="boxart hiddenboxart boxartjoke" src="images/boxart/heatsig6.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/heatsig7.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnerrank">#2</td>
+                                        </tr>
+                                    </table>
+                                </td><td></td><td style="border-left: 1px dashed grey; border-collapse:collapse "></td><td></td><td class="runnerpane">
+                                    <table class="runnerright">
+                                        <tr class="runnerrow">
+                                            <td class="runnerrank">#9</td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/godofwar.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/godofwar2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/godofwar3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/godofwar4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/godofwar5.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnertext">
+                                                <div class="titlecontainer righttitlejoke">
+                                                    <span class="runnertitle">God of War</span>
+                                                    <span class="runnertitle hiddentitle">Dad of War</span>
+                                                    <span class="runnertitle hiddentitle"><i>BOY!</i></span>
+                                                    <span class="runnertitle hiddentitle">It's Teal'c!</span>
+                                                    <span class="runnertitle hiddentitle">"Indeed."</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>8</b><br/>
+                                                    <a href="https://godofwar.playstation.com/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/5434/god-of-war" target="_blank">OpenCritic: <b>95</b></a><br/>
+                                                    <a href="https://www.playstation.com/en-ca/games/god-of-war-ps4/buy-now/" target="_blank">PS4</a>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnerrank">#7</td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/cultist.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/cultist2.png"/>
+                                                <video class="boxart" preload autoplay muted playsinline loop width="100px" height="150px" poster="images/boxart/cultist3.png">
+                                                    <source src="images/boxart/cultist3.mp4" type="video/mp4"/>
+                                                    <source src="images/boxart/cultist3.webm" type="video/webm"/>
+                                                </video>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/cultist4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/cultist5.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/cultist6.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnertext">
+                                                <div class="titlecontainer">
+                                                    <span class="runnertitle">Cultist Simulator</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>9</b><br/>
+                                                    <a href="http://weatherfactory.biz/cultist-simulator" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/6172/cultist-simulator" target="_blank">OpenCritic: <b>74</b></a> | 
+                                                    <a href="https://discord.gg/gkakV3s" target="_blank">Discuss</a><br/>
+                                                    <a href="https://store.steampowered.com/app/718670/Cultist_Simulator/" target="_blank">Steam</a> | 
+                                                    <a href="https://www.humblebundle.com/store/cultist-simulator" target="_blank">Humble</a> | 
+                                                    <a href="https://www.gog.com/game/cultist_simulator" target="_blank">GoG</a> | 
+                                                    <a href="https://alexiskennedy.itch.io/cultist-simulator" target="_blank">itch.io</a>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnerrank">#5</td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/prey.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/prey2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/prey3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/prey4.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/prey5.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/prey6.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnertext">
+                                                <div class="titlecontainer righttitlejoke">
+                                                    <span class="runnertitle">Prey: Mooncrash</span>
+                                                    <span class="runnertitle hiddentitle">Prey 2 2: Mooncrash</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>9</b><br/>
+                                                    <a href="https://prey.bethesda.net/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/6218/prey-mooncrash" target="_blank">OpenCritic: <b>81</b></a><br/>
+                                                    <a href="https://store.steampowered.com/app/865670/Prey__Mooncrash/" target="_blank">Steam</a> |
+                                                    <a href="https://prey.bethesda.net/buynow/" target="_blank">Other Stores</a>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnerrank">#3</td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/spiderman.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/spiderman2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/spiderman3.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/spiderman4.png"/>
+                                                <div class="specialboxart spiderpan" data-googly="spiderpan">
+                                                    <div class="eyecontainer"></div>
+                                                    <img src="images/boxart/spiderpan.jpg">
+                                                </div>                                                                    
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnertext">
+                                                <div class="titlecontainer">
+                                                    <span class="runnertitle">Spider-Man</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>12</b><br/>
+                                                    <a href="https://www.playstation.com/en-us/games/marvels-spider-man-ps4/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/6012/marvels-spider-man" target="_blank">OpenCritic: <b>88</b></a><br/>
+                                                    <a href="https://www.playstation.com/en-us/games/marvels-spider-man-ps4/#standard" target="_blank">PS4</a>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr class="runnerrow">
+                                            <td class="runnerrank">#1</td>
+                                            <td class="runnerimg"><div class="runnerimgdiv">
+                                                <img class="boxart" src="images/boxart/deadcells.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadcells2.png"/>
+                                                <img class="boxart hiddenboxart" data-src="images/boxart/deadcells3.png"/>
+                                                <div class="runnerribbon"></div>
+                                            </div></td>
+                                            <td class="runnertext">
+                                                <div class="titlecontainer">
+                                                    <span class="runnertitle">Dead Cells</span>
+                                                </div>
+                                                <span class="runnerstats">
+                                                    Votes: <b>15</b><br/>
+                                                    <a href="https://dead-cells.com/" target="_blank">Website</a> |
+                                                    <a href="https://opencritic.com/game/6386/dead-cells" target="_blank">OpenCritic: <b>89</b></a> | 
+                                                    <a href="https://discord.gg/RC8WbJ4" target="_blank">Discuss</a><br/>
+                                                    <a href="https://store.steampowered.com/app/588650/Dead_Cells/" target="_blank">Steam</a> | 
+                                                    <a href="https://www.gog.com/game/dead_cells" target="_blank">GoG</a> | 
+                                                    <a href="https://dead-cells.com/products" target="_blank">Consoles</a>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td></tr>
+                            </table>
+                            
+                            <br/>
+                            <br/>
+                            <center><h1>The Best Games of 2018</h1></center>
+                            <table id="results" >
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#10</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/yakuza0.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/yakuza1.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle"><span>Yakuza 0</span></td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>4</b><br/>
+                                        Runner-Up Votes: <b>6</b><br/>
+                                        <a href="http://yakuza.sega.com/yakuza0/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/3387/yakuza-0" target="_blank">OpenCritic: <b>86</b></a><br/>
+                                        <a href="https://store.steampowered.com/app/638970/Yakuza_0/" target="_blank">Steam</a> | 
+                                        <a href="http://yakuza.sega.com/yakuza0/purchase.html" target="_blank">PS4</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#9</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/battletech.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/battletech2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/battletech3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/battletech4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/battletech5.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle"><span>BattleTech</span></td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>4</b><br/>
+                                        Runner-Up Votes: <b>12</b><br/>
+                                        <a href="http://battletechgame.com/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/5947/battletech" target="_blank">OpenCritic: <b>80</b></a><br/>
+                                        <a href="https://store.steampowered.com/app/637090/BATTLETECH/" target="_blank">Steam</a> | 
+                                        <a href="https://www.humblebundle.com/store/battletech" target="_blank">Humble</a> | 
+                                        <a href="https://www.gog.com/game/battletech_game" target="_blank">GoG</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#8</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/celeste.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/celeste2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/celeste3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/celeste4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/celeste5.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/celeste6.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/celeste7.png"/>
+                                        <div class="gotyribbon"></div>
+                                        <!-- <div class="eye" style="left: 34px; top: 66px; width: 6px; height: 6px;"></div>
+                                        <div class="eye" style="left: 50px; top: 57px; width: 9px; height: 9px;"></div> -->
+                                    </div></td>
+                                    <td class="gotytitle"><span>Celeste</span></td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>6</b><br/>
+                                        Runner-Up Votes: <b>8</b><br/>
+                                        <a href="http://www.celestegame.com/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/5403/celeste" target="_blank">OpenCritic: <b>92</b></a> | 
+                                        <a href="https://discord.gg/RC8WbJ4" target="_blank">Discuss</a><br/>
+                                        <a href="https://store.steampowered.com/app/504230/Celeste/" target="_blank">Steam</a> | 
+                                        <a href="https://mattmakesgames.itch.io/celeste" target="_blank">itch.io</a> | 
+                                        <a href="https://www.nintendo.com/games/detail/celeste-switch" target="_blank">Switch</a> | 
+                                        <a href="https://www.playstation.com/en-ca/games/celeste-ps4/" target="_blank">PS4</a> | 
+                                        <a href="https://www.microsoft.com/en-ca/store/p/celeste/bwmql2rpwbhb" target="_blank">XBone</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#7</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/hitman.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/hitman2.png"/>
+                                        <img class="boxart hiddenboxart boxartjoke" src="images/boxart/hitman3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/hitman4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/hitman5.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle">
+                                        <div class="gotytitlecontainer">
+                                            <span class="gotytitlejoke">HITMAN 2</span>
+                                            <span class="gotytitlejoke hiddentitle">Hitman 2: <br/>Silent Assassin (2002)</span>
+                                        </div>
+                                    </td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>6</b><br/>
+                                        Runner-Up Votes: <b>9</b><br/>
+                                        <a href="http://www.hitman.com/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/6215/hitman-2" target="_blank">OpenCritic: <b>83</b></a><br/>
+                                        <a href="https://store.steampowered.com/app/863550/HITMAN_2/" target="_blank">Steam</a> | 
+                                        <a href="http://www.hitman.com/purchase" target="_blank">Consoles</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#6</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/odyssey.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey5.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey6.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey7.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/odyssey8.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle"><span>Assassin's Creed Odyssey</span></td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>6</b><br/>
+                                        Runner-Up Votes: <b>12</b><br/>
+                                        <a href="https://assassinscreed.ubisoft.com/game/en-ca/home" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/6222/assassins-creed-odyssey" target="_blank">OpenCritic: <b>84</b></a><br/>
+                                        <a href="https://store.steampowered.com/app/812140/Assassins_Creed_Odyssey/" target="_blank">Steam</a> |
+                                        <a href="https://store.ubi.com/ca/assassins-creed-odyssey/5afda5f888a7e34d25b50149.html" target="_blank">Ubisoft</a> | 
+                                        <a href="https://assassinscreed.ubisoft.com/game/en-ca/buy" target="_blank">Consoles</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#5</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/spire.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/spire2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/spire3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/spire4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/spire5.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle">
+                                        <div class="gotytitlecontainer">
+                                            <span class="gotytitlejoke">Slay the Spire</span>
+                                            <span class="gotytitlejoke hiddentitle">Splay the Sire</span>
+                                            <span class="gotytitlejoke hiddentitle">Survey the Shire</span>
+                                            <span class="gotytitlejoke hiddentitle">Outweigh the Choir</span>
+                                            <span class="gotytitlejoke hiddentitle">Today: on Fire</span>
+                                            <span class="gotytitlejoke hiddentitle">Suchet: None Higher</span>
+                                            <span class="gotytitlejoke hiddentitle">A Foray Most Dire</span>
+                                            <span class="gotytitlejoke hiddentitle">A Delay, Then Ire</span>
+                                            <span class="gotytitlejoke hiddentitle">Wrong Way, New Driver</span>
+                                            <span class="gotytitlejoke hiddentitle">Last Day? Retire</span>
+                                            <span class="gotytitlejoke hiddentitle">Okay, I'm Tired</span>
+                                        </div>
+                                    </td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>7</b><br/>
+                                        Runner-Up Votes: <b>23</b><br/>
+                                        <a href="https://www.megacrit.com/" target="_blank">Website</a> | 
+                                        <a href="https://discord.gg/RC8WbJ4" target="_blank">Discuss</a><br/>
+                                        <a href="https://store.steampowered.com/app/646570/Slay_the_Spire/" target="_blank">Steam</a> | 
+                                        <a href="https://www.humblebundle.com/store/slay-the-spire" target="_blank">Humble</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#4</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/monhunto.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto5.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto6.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto7.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/monhunto8.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle">
+                                        <div class="gotytitlecontainer">
+                                            <span class="gotytitlejoke">Monster Hunter: World</span>
+                                            <span class="gotytitlejoke hiddentitle">Lobster Humper: World</span>
+                                        </div>
+                                    </td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>8</b><br/>
+                                        Runner-Up Votes: <b>13</b><br/>
+                                        <a href="http://www.monsterhunterworld.com/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/4903/monster-hunter-world" target="_blank">OpenCritic: <b>89</b></a> | 
+                                        <a href="https://discord.gg/uMrYqQW" target="_blank">Discuss</a><br/>
+                                        <a href="https://store.steampowered.com/app/582010/MONSTER_HUNTER_WORLD/" target="_blank">Steam</a> | 
+                                        <a href="http://www.monsterhunterworld.com/uk/#products" target="_blank">Consoles</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#3</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/intothebreach.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/intothebreach2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/intothebreach3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/intothebreach4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/intothebreach5.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/intothebreach6.png"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle"><span>Into the Breach</span></td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>9</b><br/>
+                                        Runner-Up Votes: <b>33</b><br/>
+                                        <a href="https://subsetgames.com/itb.html" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/5606/into-the-breach" target="_blank">OpenCritic: <b>88</b></a> | 
+                                        <a href="https://discord.gg/RC8WbJ4" target="_blank">Discuss</a><br/>
+                                        <a href="https://store.steampowered.com/app/590380/Into_the_Breach/" target="_blank">Steam</a> | 
+                                        <a href="https://www.humblebundle.com/store/into-the-breach" target="_blank">Humble</a> | 
+                                        <a href="https://www.gog.com/game/into_the_breach" target="_blank">GoG</a> | 
+                                        <a href="https://www.nintendo.com/games/detail/into-the-breach-switch" target="_blank">Switch</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#2</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/obradinn.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/obradinn2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/obradinn4a.gif"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/obradinn4b.gif"/>
+                                        <div class="gotyribbon"></div>
+                                    </div></td>
+                                    <td class="gotytitle">
+                                        <div class="gotytitlecontainer">
+                                            <span class="gotytitlejoke">Return of the Obra Dinn</span>
+                                            <span class="gotytitlejoke hiddentitle">Return of the Cobra Dinner</span>
+                                        </div></td>
+                                    <td colspan="2" class="gotystats">
+                                        Game of the Year Votes: <b>10</b><br/>
+                                        Runner-Up Votes: <b>15</b><br/>
+                                        <a href="https://obradinn.com/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/1726/return-of-the-obra-dinn" target="_blank">OpenCritic: <b>91</b></a><br/>
+                                        <a href="https://store.steampowered.com/app/653530/Return_of_the_Obra_Dinn/" target="_blank">Steam</a> | 
+                                        <a href="https://www.humblebundle.com/store/return-of-the-obra-dinn" target="_blank">Humble</a> | 
+                                        <a href="https://www.gog.com/game/return_of_the_obra_dinn" target="_blank">GoG</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <tr class="gotyrow">
+                                    <td class="gotyrank">#1</td>
+                                    <td class="gotyimg"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/subnautica.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica2.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica3.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica4.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica5.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica6.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica6a.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica7.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica8.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica9.png"/>
+                                        <img class="boxart hiddenboxart" data-src="images/boxart/subnautica10.png"/>
+                                        <div class="gotyribbon maxgoat"></div>
+                                    </div></td>
+                                    <td class="gotytitle">
+                                        <div class="gotytitlecontainer">
+                                            <span class="gotytitlejoke">Subnautica</span>
+                                            <span class="gotytitlejoke hiddentitle">Sustained Ocean Willies</span>
+                                            <span class="gotytitlejoke hiddentitle">Game of Pip's Year</span>
+                                        </div>
+                                    </td>
+                                    <td class="gotystats" colspan="2">
+                                        Game of the Year Votes: <b>19</b><br/>
+                                        Runner-Up Votes: <b>26</b><br/>
+                                        <a href="https://unknownworlds.com/subnautica/" target="_blank">Website</a> |
+                                        <a href="https://opencritic.com/game/5437/subnautica" target="_blank">OpenCritic: <b>86</b></a><br/>
+                                        <a href="https://www.epicgames.com/store/en-US/product/subnautica" target="_blank">Epic</a> |
+                                        <a href="https://store.steampowered.com/app/264710/Subnautica/" target="_blank">Steam</a>
+                                    </td>
+                                </tr>
+
+                                <tr class="gotyrowspacer"></tr>
+                                <tr class="gotyrowrule"><td colspan="5"><hr></td></tr>
+                                <tr class="gotyrowspacer"></tr>
+
+                                <!-- If you're reading the source, looking for hidden jokes, please don't tell anybody in the server about this.
+                                     Just send a question in to the C&C Podcast after January 11th, and tell Chris about it. -->
+                                <tr class="gotyrow" id="chrisrow">
+                                    <td class="gotyrank"><div class="chrisdiv">#0</div></td>
+                                    <td class="gotyimg"><div class="chrisdiv"><div class="gotyimgdiv">
+                                        <img class="boxart" src="images/boxart/chris.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris2.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris3.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris4.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris5.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris6.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris7.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris8.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris9.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris10.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris11.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris12.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris13.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris14.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris15.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris16.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris17.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris18.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris19.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris20.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris21.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris22.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris23.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris24.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris25.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris26.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris27.png"/>
+                                        <video class="boxart" autoplay loop muted playsinline poster="images/boxart/chrisvid.png" width="100px" height="150px">
+                                            <!-- <source src="images/boxart/chrisvid.mp4" type="video/mp4"/> -->
+                                            <source src="images/boxart/chrisvid.webm" type="video/webm"/>
+                                        </video>
+                                        <video class="boxart" autoplay loop muted playsinline poster="images/boxart/chris28.png" width="100px" height="150px">
+                                            <source src="images/boxart/chris28.mp4" type="video/mp4"/>
+                                            <!-- <source src="images/boxart/chris28.webm" type="video/webm"/> -->
+                                        </video>
+                                        <video class="boxart" autoplay loop muted playsinline poster="images/boxart/chris29.png" width="100px" height="150px">
+                                            <source src="images/boxart/chris29.mp4" type="video/mp4"/>
+                                            <!-- <source src="images/boxart/chris29.webm" type="video/webm"/> -->
+                                        </video>
+                                        <img class="boxart" data-src="images/boxart/chris30.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris31.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris32.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris33.png" title="Chiss Mitth'urstenuodo"/>
+                                        <img class="boxart" data-src="images/boxart/chris34.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris35.png"/>
+                                        <img class="boxart" data-src="images/boxart/chris36.png"/>
+                                        <div class="gotyribbon chrisgoat"></div>
+                                    </div></div></td>
+                                    <td class="gotytitle"><div class="chrisdiv">
+                                        <span id="christitle">Chris Thursten's<br/>Photoshopped Face</span>
+                                        <span id="chisstitle">Chiss Mitth'urstenuodo's<br/>Photoshopped Face</span>
+                                    </div></td>
+                                    <td class="gotystats" colspan="2"><div class="chrisdiv">
+                                        Game of the Year Votes: <b>99</b><br/>
+                                        Runner-Up Votes: <b>999</b><br/>
+                                        <a href="https://twitter.com/CThursten/with_replies" target="_blank">Website</a> |
+                                        <a href="http://crateandcrowbar.com/" target="_blank">OpenCritic: <b>101</b></a><br/>
+                                        Free on <a href="https://discord.gg/0Uz2RsGMemgl9DZT" target="_blank">C&C Discord</a></div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <br/>
+                            <br/>
+                            <center class="section">
+                                <h1 class="sectionhead">Honourable Mentions</h1>
+                                Strong contenders that just didn't make it into the top 20.
+                            </center>
+                            <br/>
+                            <div id="honourable">
+                                <div>Destiny 2: Forsaken</div>
+                                <div>Forza Horizon 4</div>
+                                <div>Hollow Knight</div>
+                                <div>Stellaris</div>
+                                <div>Battlefield V</div>
+                                <div>Valkyria Chronicles 4</div>
+                                <div>What Remains of Edith Finch</div>
+                                <div>Dark Souls Remastered</div>
+                                <div>Beat Saber</div>
+                                <div>CrossCode</div>
+                                <div>Divinity: Original Sin 2</div>
+                                <div>Dota 2</div>
+                                <div>Frostpunk</div>
+                                <div>Heaven Will Be Mine</div>
+                                <div>Magic: The Gathering Arena</div>
+                                <div>Persona 5</div>
+                                <div>Tom Clancy's<br/>Rainbow Six Siege</div>
+                                <div>Chuchel</div>
+                                <div>Elite: Dangerous</div>
+                                <div>Hearts of Iron IV</div>
+                                <div>Path of Exile</div>
+                                <div>Red Dead Redemption 2</div>
+                                <div>RimWorld</div>
+                                <div>Stardew Valley</div>
+                                <div>Streets of Rogue</div>
+                                <div>Two Point Hospital</div>
+                                <div>Chess</div>
+                                <div>Guild Wars 2</div>
+                                <div>Megaquarium</div>
+                                <div>Unavowed</div>
+                                <div>Deltarune</div>
+                                <div>Exapunks</div>
+                                <div>Prey</div>
+                                <div>Gorogoa</div>
+                                <div>Minit</div>
+                                <div>Dishonored 2</div>
+                                <div>GRIS</div>
+                                <div>Parkitect</div>
+                                <div>The Banner Saga</div>
+                                <div>Yoku's Island Express</div>
+                                <div>Paratopic</div>
+                                <div>Total War: Warhammer 2</div>
+                                <div>Football, Tactics & Glory</div>
+                                <div>Oxygen Not Included</div>
+                                <div>Kingdom Come: Deliverance</div>
+                                <div>No Man's Sky</div>
+                                <div>Sea of Thieves</div>
+                                <div>Final Fantasy XV:<br/>Windows Edition</div>
+                                <div>Where the Water<br/>Tastes Like Wine</div>
+                                <div>PLAYERUNKNOWN'S<br/>BATTLEGROUNDS</div>
+                                <div>Octopath Traveler</div>
+                                <div>The Red Strings Club</div>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <center class="section">
+                                <h1 class="sectionhead">Special Consideration</h1>
+                                Wonderful games recommended by just one member of the community.<br/>
+                                Titles in <b>bold</b> were that member's Game of the Year!
+                            </center>
+                            <br/>
+                            <div id="specialWrapper">
+                                <div id="specialsection">
+                                    <div class="specialgoty" id="lavtitle">almanac of girlswampwar territory</div>
+                                    <div class="specialgoty">Deus Ex: Mankind Divided</div>
+                                    <div class="specialgoty">DUSK</div>
+                                    <div class="specialgoty">Dwarf Fortress</div>
+                                    <div class="specialgoty">Fallen London</div>
+                                    <div class="specialgoty">Final Fantasy XV: Episode Ignis</div>
+                                    <div class="specialgoty">Gran Turismo Sport</div>
+                                    <div class="specialgoty">Iconoclasts</div>
+                                    <div class="specialgoty">Kingdom Hearts II</div>
+                                    <div class="specialgoty">Monster Hunter<br/>Generations Ultimate</div>
+                                    <div class="specialgoty">NieR:Automata</div>
+                                    <div class="specialgoty">Pyre</div>
+                                    <div class="specialgoty">Sid Meier's Civilization VI:<br/>Rise and Fall</div>
+                                    <div class="specialgoty">StarCraft: Remastered</div>
+                                    <div class="specialgoty">Tacoma</div>
+                                    <div class="specialgoty">The Elder Scrolls III: Morrowind</div>
+                                    <div class="specialgoty">Unexplored</div>
+                                    <div>0°N 0°W</div>
+                                    <div>80 Days</div>
+                                    <div>A Way Out</div>
+                                    <div>A3 - Antistasi Altis</div>
+                                    <div>Ace Combat (Series)</div>
+                                    <div>Adeptus Titanicus: Dominus</div>
+                                    <div>Assassin's Creed Origins</div>
+                                    <div>Astro Bot Rescue Mission</div>
+                                    <div>Attack on Titan 2</div>
+                                    <div>Aye Fair Lady</div>
+                                    <div>Below</div>
+                                    <div>Blood Bowl 2 - Legendary Edition</div>
+                                    <div>Broken Reality</div>
+                                    <div>Cardinal Cross</div>
+                                    <div>Castlevania: Symphony of the Night</div>
+                                    <div>Caveblazers</div>
+                                    <div>Cities: Skylines</div>
+                                    <div>Civilization VI: Rise and Fall</div>
+                                    <div>Crusader Kings II</div>
+                                    <div>Crusader Kings II: Holy Fury</div>
+                                    <div>DARK SOULS:<br/>Prepare To Die Edition</div>
+                                    <div>Dark Souls 2: Scholar of the First Sin</div>
+                                    <div>Destiny 2</div>
+                                    <div>Diablo 3</div>
+                                    <div>DOOM</div>
+                                    <div>Door Kickers: Action Squad</div>
+                                    <div>Dragon Quest XI</div>
+                                    <div>E.Y.E: Divine Cybermancy</div>
+                                    <div>Epic Battle Fantasy 4</div>
+                                    <div>Escape from Tarkov</div>
+                                    <div>Eternal Card Game</div>
+                                    <div>Euro Truck Simulator 2</div>
+                                    <div>Europa Universalis IV</div>
+                                    <div>Everything</div>
+                                    <div>Factorio</div>
+                                    <div>Fallout: New Vegas</div>
+                                    <div>Far Cry 5</div>
+                                    <div>FAR: Lone Sails</div>
+                                    <div>Final Fantasy XIV: A Realm Reborn</div>
+                                    <div>Finding Paradise</div>
+                                    <div>Fire Pro Wrestling World</div>
+                                    <div>FOX n FORESTS</div>
+                                    <div>Fugue in Void</div>
+                                    <div>GNOG</div>
+                                    <div>Grand Theft Auto Online</div>
+                                    <div>Grim Dawn</div>
+                                    <div>GRIP: Combat Racing</div>
+                                    <div>Guacamelee! 2</div>
+                                    <div>Hellblade: Senua's Sacrifice</div>
+                                    <div>Helldivers</div>
+                                    <div>Hidden Folks</div>
+                                    <div>Invisible, Inc</div>
+                                    <div>iRacing</div>
+                                    <div>Just Dance 2019</div>
+                                    <div>Just Shapes & Beats</div>
+                                    <div>Kenshi</div>
+                                    <div>Kerbal Space Program</div>
+                                    <div>killer7</div>
+                                    <div>Ladykiller in a Bind</div>
+                                    <div>Lara Croft: GO</div>
+                                    <div>Mass Effect 3</div>
+                                    <div>Master of Orion</div>
+                                    <div>Meteorfall</div>
+                                    <div>Night in the Woods</div>
+                                    <div>Northgard</div>
+                                    <div>Okami HD</div>
+                                    <div>Opus Magnum</div>
+                                    <div>Overload</div>
+                                    <div>Persona Q2: New Cinema Labryinth</div>
+                                    <div>Pillars of Eternity</div>
+                                    <div>Pokémon: Let's Go, Pikachu!<br/>and Let's Go, Eevee!</div>
+                                    <div>Seers Isle</div>
+                                    <div>Shadow of the Tomb Raider</div>
+                                    <div>Sid Meier's Civilization V</div>
+                                    <div>Sonic Mania</div>
+                                    <div>SpyParty</div>
+                                    <div>Stationeers</div>
+                                    <div>Stellaris: MegaCorp</div>
+                                    <div>Street Fighter V Arcade Edition</div>
+                                    <div>Subsurface Circular</div>
+                                    <div>Sunset Overdrive</div>
+                                    <div>Super Mario Odyssey</div>
+                                    <div>Super Smash Bros. Ultimate</div>
+                                    <div>The Banner Saga 3</div>
+                                    <div>The Bard's Tale IV: Barrows Deep</div>
+                                    <div>The Golf Club 2019</div>
+                                    <div>The Haunted Island,<br/>a Frog Detective Game</div>
+                                    <div>The Legend of Zelda:<br/>Breath of the Wild</div>
+                                    <div>The Messenger</div>
+                                    <div>The Sims 4</div>
+                                    <div>Ultimate Chicken Horse</div>
+                                    <div>Warhammer Age of Sigmar<br/>(2nd Edition)</div>
+                                    <div>Wolfenstein: The New Order</div>
+                                    <div>World of Warcraft: Legion</div>
+                                    <div>XCOM 2: Tactical Legacy Pack</div>
+                                    <div>XCOM 2: War of the Chosen</div>
+                                    <div>Yakuza 6: The Song of Life</div>
+                                </div>
+                                <div id="specialToggle">(show random selection)</div>
+                            </div>
+                        </center>
+                    </td>
+                    <td class="innerpad"></td>                
+                    <td class="ribboninsideline"></td><td class="ribbonbody"></td><td class="ribbonoutsideline"></td>
+                </tr>
+                <tr class="maxHeight">
+                    <td class="ribbonoutsideline"></td><td class="ribbonbody"></td><td class="ribboninsideline"></td>
+                    <td class="innerpad"></td>
+                    <td class="centrepad" style="height:32px;"></td>
+                    <td class="innerpad"></td>                
+                    <td class="ribboninsideline"></td><td class="ribbonbody"></td><td class="ribbonoutsideline"></td>
+                </tr>
+            </table>
+            </center>
+        </div>
+        <script src="jquery.appear.js"></script>
+    </body>
+</html>
